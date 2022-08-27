@@ -16,9 +16,9 @@ function onSearch(event) {
 
   const inputValue = event.currentTarget.elements.searchQuery.value.trim();
 
-  fetchPhotos(inputValue, page)
+  fetchPhotos(inputValue)
     .then(data => {
-      if (data.hits.length === 0) {
+      if (data.hits.length === 0 || inputValue === '') {
         Notify.failure("Sorry, there are no images matching your search query. Please try again.")
         return
       }

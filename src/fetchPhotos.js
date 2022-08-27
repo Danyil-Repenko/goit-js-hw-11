@@ -1,4 +1,4 @@
-export function fetchPhotos(name, page) {
+export function fetchPhotos(name) {
     const rootUrl = "https://pixabay.com/api/";
     const peremeters = new URLSearchParams({
         key: '29417060-6945200ead3992d525ee3c3b8',
@@ -7,7 +7,7 @@ export function fetchPhotos(name, page) {
         orientation: 'horizontal',
         safesearch: true,
         per_page: 40,
-        page
+        page: 1,
     });
     return fetch(`${rootUrl}?${peremeters}`)
         .then(response => {
