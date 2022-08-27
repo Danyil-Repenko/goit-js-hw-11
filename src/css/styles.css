@@ -71,21 +71,31 @@ button[type='submit']:focus {
 .gallery {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  margin: -10px;
+  gap: 20px;
   max-width: 1200px;
+  align-content: center;
 }
 
 .photo-card {
-  width: calc((100% - 20px * 3) / 4);
-  margin: 10px;
+  flex-basis: calc((100% - 3 * 20px) / 4);
 }
 
 .photo-card img {
-  width: 100%;
-  height: auto;
+  display: block;
+  max-width: 100%;
 }
 
 .info {
   display: flex;
+  font-size: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #eeeeee;
+  border-left: 1px solid #eeeeee;
+  border-right: 1px solid #eeeeee;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.info-item {
+  text-align: center;
+  display: inline-block;
 }
