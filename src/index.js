@@ -1,31 +1,37 @@
 import './css/styles.css';
 import { fetchPhotos } from './fetchPhotos.js';
+import { creatMarkup } from './markup.js'
 import { Notify } from 'notiflix';
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
 import throttle from 'lodash.throttle';
+import OnlyScroll from 'only-scrollbar';
 
 const refs = {
   form: document.querySelector("#search-form"),
   queryInput: document.querySelector("[name='searchQuery']"),
   gallery: document.querySelector("div.gallery"),
-  loadMoreButton: document.querySelector("button.load-more"),
 }
 
+const scroll = new OnlyScroll(document.scrollingElement, {
+  damping: 0.6,
+});
+
 refs.form.addEventListener('submit', onSearch);
-window.addEventListener('scroll', throttle(checkPosition, 250));
-window.addEventListener('resize', throttle(checkPosition, 250));
+window.addEventListener('scroll', throttle(checkPosition, 350));
 
 let inputValue = null;
-let currentPage = 1;
-let isLoading = false
-let shouldLoad = true
+let galleryLightBox = null;
+let currentPage = null;
+let isLoading = null;
+let shouldLoad = null;
 
 function onSearch(event) {
   event.preventDefault();
 
+  window.scrollTo(0, 0);
   inputValue = event.currentTarget.elements.searchQuery.value.trim();
-  currentPage = 1;
+  setValues();
 
   fetchPhotos(inputValue, currentPage)
     .then(data => {
@@ -33,16 +39,23 @@ function onSearch(event) {
         processNoMatchesFound();
         return
       }
+
       refs.gallery.innerHTML = '';
       processData(data);
     })
     .catch(processServerError)
 }
 
+function setValues() {
+  currentPage = 1;
+  isLoading = false;
+  shouldLoad = true;
+}
+
 function processData(data) {
   loadPhotos(data);
   Notify.success(`Hooray! We found ${data.totalHits} images.`)
-  const galleryLightBox = new SimpleLightbox('.gallery a');
+  galleryLightBox = new SimpleLightbox('.gallery a');
 }
 
 function loadPhotos(data) {
@@ -50,53 +63,35 @@ function loadPhotos(data) {
   refs.gallery.insertAdjacentHTML('beforeend', markup);
 }
 
-function creatMarkup({ hits }) {
-  return hits
-    .map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) => {
-      return `<div class="photo-card">
-      <a href="${largeImageURL}">
-          <div class="image-container">
-  <img class="image" src="${webformatURL}" alt="${tags}" loading="lazy" />
-  </div>
-   </a>
-  <div class="info">
-    <p class="info-item">
-      <b>Likes</b> ${likes}
-    </p>
-    <p class="info-item">
-      <b>Views</b> ${views}
-    </p>
-    <p class="info-item">
-      <b>Comments</b> ${comments}
-    </p>
-    <p class="info-item">
-      <b>Downloads</b> ${downloads}
-    </p>
-  </div>
-</div>`
-    })
-    .join('')
-}
-
-async function checkPosition() {
-  const height = document.body.offsetHeight;
-  const screenHeight = window.innerHeight;
-  const scrolled = window.scrollY;
-  const threshold = height - screenHeight / 4;
-  const position = scrolled + screenHeight;
+function checkPosition() {
+  const height = document.body.offsetHeight
+  const screenHeight = window.innerHeight
+  const scrolled = window.scrollY
+  const threshold = height - screenHeight / 4
+  const position = scrolled + screenHeight
 
   if (position >= threshold) {
-    await loadMore()
+    loadMore()
   }
 }
 
-async function loadMore() {
-  await fetchPhotos(inputValue, currentPage)
+function loadMore() {
+  if (isLoading || !shouldLoad) {
+    return
+  }
+  currentPage += 1;
+  fetchPhotos(inputValue, currentPage)
     .then(data => {
-      currentPage += 1
+      isLoading = true
+
       loadPhotos(data);
+      galleryLightBox.refresh();
+      isLoading = false
     })
-    .catch(processServerError)
+    .catch(() => {
+      shouldLoad = false
+      Notify.info("We're sorry, but you've reached the end of search results.")
+    })
 }
 
 
