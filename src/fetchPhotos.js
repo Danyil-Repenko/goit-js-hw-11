@@ -1,5 +1,6 @@
-export function fetchPhotos(name) {
-    const rootUrl = "https://pixabay.com/api/";
+const rootUrl = "https://pixabay.com/api/";
+
+export async function fetchPhotos(name) {
     const peremeters = new URLSearchParams({
         key: '29417060-6945200ead3992d525ee3c3b8',
         q: name,
@@ -9,11 +10,6 @@ export function fetchPhotos(name) {
         per_page: 40,
         page: 1,
     });
-    return fetch(`${rootUrl}?${peremeters}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(response.status);
-            }
-            return response.json();
-        });
+    const response = await fetch(`${rootUrl}?${peremeters}`);
+    return await response.json();
 }

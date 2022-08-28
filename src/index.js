@@ -1,6 +1,8 @@
 import './css/styles.css';
 import { fetchPhotos } from './fetchPhotos.js';
 import { Notify } from 'notiflix';
+import SimpleLightbox from "simplelightbox";
+import "simplelightbox/dist/simple-lightbox.min.css";
 
 const refs = {
   form: document.querySelector("#search-form"),
@@ -19,13 +21,34 @@ function onSearch(event) {
   fetchPhotos(inputValue)
     .then(data => {
       if (data.hits.length === 0 || inputValue === '') {
-        Notify.failure("Sorry, there are no images matching your search query. Please try again.")
+        processNoMatchesFound();
         return
       }
-      const markup = data.hits
-        .map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) => {
-          return `<div class="photo-card">
-  <img src="${webformatURL}" alt="${tags}" loading="lazy" />
+      processData(data);
+    })
+    .catch(processServerError)
+}
+
+function processData(data) {
+  loadPhotos(data);
+  Notify.success(`Hooray! We found ${data.totalHits} images.`)
+  const galleryLightBox = new SimpleLightbox('.gallery a');
+}
+
+function loadPhotos(data) {
+  const markup = creatMarkup(data);
+  refs.gallery.innerHTML = markup;
+}
+
+function creatMarkup({ hits }) {
+  return hits
+    .map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) => {
+      return `<div class="photo-card">
+      <a href="${largeImageURL}">
+          <div class="image-container">
+  <img class="image" src="${webformatURL}" alt="${tags}" loading="lazy" />
+  </div>
+   </a>
   <div class="info">
     <p class="info-item">
       <b>Likes</b> ${likes}
@@ -41,9 +64,15 @@ function onSearch(event) {
     </p>
   </div>
 </div>`
-        })
-        .join('')
-      refs.gallery.innerHTML = markup;
     })
-    .catch(() => Notify.warning("Sorry, an error occurred on the server. Please try again some time later."))
+    .join('')
+}
+
+function processNoMatchesFound() {
+  refs.gallery.innerHTML = '';
+  Notify.failure("Sorry, there are no images matching your search query. Please try again.");
+}
+
+function processServerError() {
+  Notify.warning("Sorry, an error occurred on the server. Please try again some time later.");
 }

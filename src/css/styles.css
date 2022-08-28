@@ -36,7 +36,6 @@ input[name='searchQuery'] {
   height: 35px;
   width: 200px;
   padding: 10px;
-  margin-right: 5px;
   border: 1px solid rgb(47, 79, 79);
   border-radius: 4px;
   outline: transparent;
@@ -72,27 +71,37 @@ button[type='submit']:focus {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
+  margin: 0 auto;
   max-width: 1200px;
   align-content: center;
 }
 
 .photo-card {
   flex-basis: calc((100% - 3 * 20px) / 4);
+  cursor: pointer;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15);
 }
 
-.photo-card img {
+.image-container {
+  width: 100%;
+  height: 170px;
+}
+
+.image {
   display: block;
-  max-width: 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .info {
   display: flex;
+  justify-content: center;
   font-size: 12px;
   padding: 10px 14px;
   border-bottom: 1px solid #eeeeee;
   border-left: 1px solid #eeeeee;
   border-right: 1px solid #eeeeee;
-  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .info-item {
