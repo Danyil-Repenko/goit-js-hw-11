@@ -3,6 +3,7 @@ import { fetchPhotos } from './fetchPhotos.js';
 import { Notify } from 'notiflix';
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
+import throttle from 'lodash.throttle';
 
 const refs = {
   form: document.querySelector("#search-form"),
@@ -12,18 +13,27 @@ const refs = {
 }
 
 refs.form.addEventListener('submit', onSearch);
+window.addEventListener('scroll', throttle(checkPosition, 250));
+window.addEventListener('resize', throttle(checkPosition, 250));
+
+let inputValue = null;
+let currentPage = 1;
+let isLoading = false
+let shouldLoad = true
 
 function onSearch(event) {
   event.preventDefault();
 
-  const inputValue = event.currentTarget.elements.searchQuery.value.trim();
+  inputValue = event.currentTarget.elements.searchQuery.value.trim();
+  currentPage = 1;
 
-  fetchPhotos(inputValue)
+  fetchPhotos(inputValue, currentPage)
     .then(data => {
       if (data.hits.length === 0 || inputValue === '') {
         processNoMatchesFound();
         return
       }
+      refs.gallery.innerHTML = '';
       processData(data);
     })
     .catch(processServerError)
@@ -37,7 +47,7 @@ function processData(data) {
 
 function loadPhotos(data) {
   const markup = creatMarkup(data);
-  refs.gallery.innerHTML = markup;
+  refs.gallery.insertAdjacentHTML('beforeend', markup);
 }
 
 function creatMarkup({ hits }) {
@@ -67,6 +77,28 @@ function creatMarkup({ hits }) {
     })
     .join('')
 }
+
+async function checkPosition() {
+  const height = document.body.offsetHeight;
+  const screenHeight = window.innerHeight;
+  const scrolled = window.scrollY;
+  const threshold = height - screenHeight / 4;
+  const position = scrolled + screenHeight;
+
+  if (position >= threshold) {
+    await loadMore()
+  }
+}
+
+async function loadMore() {
+  await fetchPhotos(inputValue, currentPage)
+    .then(data => {
+      currentPage += 1
+      loadPhotos(data);
+    })
+    .catch(processServerError)
+}
+
 
 function processNoMatchesFound() {
   refs.gallery.innerHTML = '';
