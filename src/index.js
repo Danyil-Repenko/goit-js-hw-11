@@ -71,7 +71,7 @@ function checkPosition() {
   const position = scrolled + screenHeight
 
   if (position >= threshold) {
-    loadMore()
+    loadMore();
   }
 }
 
@@ -86,11 +86,11 @@ function loadMore() {
 
       loadPhotos(data);
       galleryLightBox.refresh();
-      isLoading = false
+      isLoading = false;
     })
     .catch(() => {
       shouldLoad = false
-      Notify.info("We're sorry, but you've reached the end of search results.")
+      Notify.info("We're sorry, but you've reached the end of search results.");
     })
 }
 
